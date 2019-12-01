@@ -24,20 +24,46 @@ import io
 def fuel_needed_for(mass):
     return (mass//3) - 2
 
+def fuel_is_heavy_too(mass):
+    fuel = fuel_needed_for(mass)
+    add_fuel = fuel_needed_for(fuel)
+    while add_fuel > 0:
+        fuel = fuel + add_fuel
+        add_fuel = fuel_needed_for(add_fuel)
+        if add_fuel <= 0:
+            break
+    return fuel
+
+
 
 assert(fuel_needed_for(12) == 2), "12 is wrong"
 assert(fuel_needed_for(14) == 2), "14 is wrong"
 assert(fuel_needed_for(1969) == 654), "1969 is wrong"
 assert(fuel_needed_for(100756) == 33583), "100756 is wrong"
 
+assert(fuel_is_heavy_too(12) == 2), "12 is wrong"
+assert(fuel_is_heavy_too(1969) == 966), "1969 is wrong"
+assert(fuel_is_heavy_too(100756) == 50346), "100756 is wrong"
+
 masses = io.open('zkamvar-input.txt', 'r')
+mass_list = list()
 sum = 0
 for mass in masses:
     if not mass.strip() == '': # skip over blank lines
-        sum = sum + fuel_needed_for(float(mass))
+        fmass = float(mass)
+        mass_list.append(fmass)
+        sum = sum + fuel_needed_for(fmass)
 
-msg = "We need {} units of fuel".format(sum)
+msg = "Part 1: We need {} units of fuel".format(sum)
 print(msg)
+
+sum = 0
+for mass in mass_list:
+    sum = sum + fuel_is_heavy_too(mass)
+
+msg = "Part 2: We need {} units of fuel for fuel and cargo".format(sum)
+print(msg)
+
 
 
 # During the second Go / No Go poll, the Elf in charge of the Rocket Equation
@@ -67,7 +93,11 @@ print(msg)
 # -   The fuel required by a module of mass 100756 and its fuel is: 33583 +
 #     11192 + 3728 + 1240 + 411 + 135 + 43 + 12 + 2 = 50346.
 
+
 # What is the sum of the fuel requirements for all of the modules on your
 # spacecraft when also taking into account the mass of the added fuel?
 # (Calculate the fuel requirements for each module separately, then add them
 # all up at the end.)
+
+
+

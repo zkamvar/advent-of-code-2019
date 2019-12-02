@@ -112,9 +112,9 @@ class Intcode:
             inst = self.code[i]
             if inst == 99:
                 break
-            a    = self.code[i + 1]
-            b    = self.code[i + 2]
-            pos  = self.code[i + 3]
+            a   = self.code[i + 1]
+            b   = self.code[i + 2]
+            pos = self.code[i + 3]
             self.log(inst, a, b, pos)
             if inst == 1:
                 self.add(a, b, pos)
@@ -146,6 +146,8 @@ if __name__ == "__main__":
         string = "".join(f.readlines())
 
     codes = Intcode(string)
+    codes.set(1, 12)
+    codes.set(2, 2)
     print("Input\t:{}".format(codes.string()))
     codes.play()
     print("Output\t:{}".format(codes.string()))

@@ -79,8 +79,11 @@ import io
 class Intcode:
     def __init__(self, string):
         self.code = [int(x) for x in string.split(",")]
-        self.ran = False
+        self.record = list()
     
+    def string(self):
+        return(",".join([str(x) for x in self.code]))
+
     def get(self, position):
         return(self.code[position])
 
@@ -96,7 +99,14 @@ class Intcode:
         self.code[position] = self.code[a] * self.code[b]
         return(self)
 
-    def run(self):
+    def log(self, inst, a, b, position):
+        self.record.append([inst, self.code[a], self.code[b], self.code[position], position])
+        return(self)
+
+    def get_log(self):
+        return(self.record)
+
+    def play(self):
         i = 0
         while True:
             inst = self.code[i]
@@ -105,7 +115,7 @@ class Intcode:
             a    = self.code[i + 1]
             b    = self.code[i + 2]
             pos  = self.code[i + 3]
-            print("CODE: {} {} {} {}".format(inst, a, b, pos))
+            self.log(inst, a, b, pos)
             if inst == 1:
                 self.add(a, b, pos)
             elif inst == 2:
@@ -120,21 +130,23 @@ class Intcode:
 
 if __name__ == "__main__":
 
-    t1 = Intcode("1,9,10,3,2,3,11,0,99,30,40,50")
-    t2 = Intcode("1,0,0,0,99") # becomes 2,0,0,0,99 (1 + 1 = 2).
-    t3 = Intcode("2,3,0,3,99") # becomes 2,3,0,6,99 (3 * 2 = 6).
-    t4 = Intcode("2,4,4,5,99,0") # becomes 2,4,4,5,99,9801 (99 * 99 = 9801).
-    t5 = Intcode("1,1,1,4,99,5,6,0,99") # becomes 30,1,1,4,2,5,6,0,99.
+    t1 = Intcode("1,9,10,3,2,3,11,0,99,30,40,50").play()
+    t2 = Intcode("1,0,0,0,99").play() # becomes 2,0,0,0,99 (1 + 1 = 2).
+    t3 = Intcode("2,3,0,3,99").play() # becomes 2,3,0,6,99 (3 * 2 = 6).
+    t4 = Intcode("2,4,4,5,99,0").play() # becomes 2,4,4,5,99,9801 (99 * 99 = 9801).
+    t5 = Intcode("1,1,1,4,99,5,6,0,99").play() # becomes 30,1,1,4,2,5,6,0,99.
 
-    assert(t1.run().get(0) == 3500), "t1 is wrong: {}".format(",".join([str(x) for x in t1.code]))
-    assert(t2.run().get(0) == 2), "t2 is wrong"
-    assert(t3.run().get(0) == 2), "t3 is wrong: {}".format(",".join([str(x) for x in t3.code]))
-    assert(t4.run().get(0) == 2), "t4 is wrong"
-    assert(t5.run().get(0) == 30), "t5 is wrong"
+    assert(t1.get(0)   == 3500),                  "t1 is wrong: {}".format(t1.string())
+    assert(t2.string() == "2,0,0,0,99"),          "t2 is wrong: {}".format(t2.string())
+    assert(t3.string() == "2,3,0,6,99"),          "t3 is wrong: {}".format(t3.string())
+    assert(t4.string() == "2,4,4,5,99,9801"),     "t4 is wrong: {}".format(t4.string())
+    assert(t5.string() == "30,1,1,4,2,5,6,0,99"), "t5 is wrong: {}".format(t5.string())
     
     with io.open("zkamvar-input.txt", "r") as f:
         string = "".join(f.readlines())
 
     codes = Intcode(string)
-    codes.run()
-    print("First code was: {}".format(codes.get(0)))
+    print("Input\t:{}".format(codes.string()))
+    codes.play()
+    print("Output\t:{}".format(codes.string()))
+    print("\nFirst code was: {}\n".format(codes.get(0)))

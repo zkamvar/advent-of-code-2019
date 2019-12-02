@@ -79,6 +79,7 @@ import io
 class Intcode:
     def __init__(self, string):
         self.code = [int(x) for x in string.split(",")]
+        self.backup = self.code.copy()
         self.record = list()
     
     def string(self):
@@ -106,6 +107,11 @@ class Intcode:
     def get_log(self):
         return(self.record)
 
+    def reset(self):
+        self.code = self.backup.copy()
+        self.log = list()
+        return(self)
+
     def play(self):
         i = 0
         while True:
@@ -115,7 +121,7 @@ class Intcode:
             a   = self.code[i + 1]
             b   = self.code[i + 2]
             pos = self.code[i + 3]
-            self.log(inst, a, b, pos)
+            # self.log(inst, a, b, pos)
             if inst == 1:
                 self.add(a, b, pos)
             elif inst == 2:
@@ -124,10 +130,30 @@ class Intcode:
                 ValueError("This ain't right")
             i = i + 4
         return(self)
+
     def set_params(self, noun, verb):
         self.set(1, noun)
         self.set(2, verb)
         return(self)
+
+    """
+    Brute force an answer to the noun-verb question
+    """
+    def et_tu(self, value):
+        result = None
+        for noun in range(100):
+            for verb in range(100):
+                self.reset()
+                self.set_params(noun, verb)
+                self.play()
+                if self.get(0) == value:
+                    result = 100 * noun + verb
+                    break # This whole for/else buisness is weird
+            else:         # https://stackoverflow.com/a/6346536/2752888
+                continue
+            break
+        return(result)
+
         
 
 def load_program(path):
@@ -155,4 +181,5 @@ if __name__ == "__main__":
     codes = Intcode(string)
     codes.set_params(12, 2)
     codes.play()
-    print("\nFirst code was: {}\n".format(codes.get(0)))
+    print("\nFirst code was: {}".format(codes.get(0)))
+    print("The value of the 100 * noun + verb is: {}\n".format(codes.et_tu(19690720)))

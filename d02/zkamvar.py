@@ -125,8 +125,11 @@ class Intcode:
             i = i + 4
         return(self)
 
-            
-
+def load_program(path):
+    with io.open(path, "r") as f:
+        string = "".join(f.readlines())
+        f.close()
+    return(string)
 
 if __name__ == "__main__":
 
@@ -142,13 +145,10 @@ if __name__ == "__main__":
     assert(t4.string() == "2,4,4,5,99,9801"),     "t4 is wrong: {}".format(t4.string())
     assert(t5.string() == "30,1,1,4,2,5,6,0,99"), "t5 is wrong: {}".format(t5.string())
     
-    with io.open("zkamvar-input.txt", "r") as f:
-        string = "".join(f.readlines())
 
+    string = load_program("zkamvar-input.txt")
     codes = Intcode(string)
     codes.set(1, 12)
     codes.set(2, 2)
-    print("Input\t:{}".format(codes.string()))
     codes.play()
-    print("Output\t:{}".format(codes.string()))
     print("\nFirst code was: {}\n".format(codes.get(0)))

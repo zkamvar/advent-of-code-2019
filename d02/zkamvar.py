@@ -124,6 +124,11 @@ class Intcode:
                 ValueError("This ain't right")
             i = i + 4
         return(self)
+    def set_params(self, noun, verb):
+        self.set(1, noun)
+        self.set(2, verb)
+        return(self)
+        
 
 def load_program(path):
     with io.open(path, "r") as f:
@@ -148,7 +153,6 @@ if __name__ == "__main__":
 
     string = load_program("zkamvar-input.txt")
     codes = Intcode(string)
-    codes.set(1, 12)
-    codes.set(2, 2)
+    codes.set_params(12, 2)
     codes.play()
     print("\nFirst code was: {}\n".format(codes.get(0)))

@@ -28,11 +28,23 @@ def get_input(path):
 
     return((root, nodes))
 
+def count_edges(tree):
+    children = tree.children
+    edges = len(children) 
+    for child in children:
+        if len(child.children) > 0:
+            edges = edges + count_edges(child)
+        else:
+            pass
+    return(edges)
 
 if __name__ == '__main__':
 
     (t1_root, t1) = get_input("test-input1.txt")
-    for pre, fill, node in atree.RenderTree(t1[t1_root]):
+    the_tree = t1[t1_root]
+    for pre, fill, node in atree.RenderTree(the_tree):
         print("%s%s" % (pre, node.name))
 
-    print([[node.name for node in children] for children in atree.LevelGroupOrderIter(t1[t1_root])])
+    print(count_edges(the_tree))
+
+

@@ -7,7 +7,7 @@ class BIOS:
     def __init__(self, image, height = 6, width = 25):
         image = [int(x) for x in image]
         depth = int(len(image) / (height * width))
-        layers = np.array(image).reshape((height,  width, depth), order = "F")
+        layers = np.array(image).reshape((width, height, depth), order = "F")
 
         self.image = layers
 
@@ -25,9 +25,9 @@ class BIOS:
         twos = im_full == 2
         return(ones.sum() * twos.sum())
 
-    def print(self):
+    def print(self, style = False):
         ii = self.get_image()
-        print_image(ii)
+        print_image(ii, style)
 
     def part_two(self):
         img = self.get_image()
@@ -43,24 +43,33 @@ class BIOS:
         return(levels)
 
 
-def print_image(img):
+def print_image(img, style = True):
     if len(img.shape) == 3:
         for k in range(img.shape[2]):
-                for i in range(img.shape[0]):
-                    for j in range(img.shape[1]):
-                        res = "█" if img[i, j, k] else " "
-                        print(res, end = " ")
-                    print("")
-                print("\n---------")
-    elif len(img.shape) == 2:
-        for i in range(img.shape[0]):
             for j in range(img.shape[1]):
-                res = "█" if img[i, j] else " "
+                for i in range(img.shape[0]):
+                    if style:
+                        res = "█" if img[i, j, k] else " "
+                    else:
+                        res = img[i, j, k]
+                    print(res, end = " ")
+                print("")
+            print("---------")
+    elif len(img.shape) == 2:
+        for j in range(img.shape[1]):
+            for i in range(img.shape[0]):
+                if style:
+                    res = "█" if img[i, j] else " "
+                else:
+                    res = img[i, j]
                 print(res, end = " ")
             print("")
     else:
         for i in range(img.shape[0]):
-            res = "█" if img[i] else " "
+            if style:
+                res = "█" if img[i] else " "
+            else:
+                res = img[i]
             print(res, end = " ")
 
 
@@ -84,6 +93,7 @@ if __name__ == '__main__':
     assert(ones.sum() * twos.sum() == 1)
     assert(x.part_one() == 1)
     s = '012222221012222222221102000220220102022222211221221122022012112012201202221'
+    s = s + '0'*25
     t2 = BIOS(s, 5, 5)
     assert(t2.part_one() == 80)
 
@@ -94,5 +104,3 @@ if __name__ == '__main__':
     print("Part 2: ")
     lvls = img.part_two()
     
-
-

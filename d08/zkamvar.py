@@ -16,7 +16,7 @@ class BIOS:
 
     def least_zeroes(self):
         zeroes = self.image == 0
-        res = zeroes.sum(axis = 1).tolist()
+        res = zeroes.sum(axis = 0).tolist()
         return(self.image[..., res.index(min(res))])
 
     def part_one(self):
@@ -46,6 +46,10 @@ if __name__ == '__main__':
     assert(svns.sum() == 0)
     assert(ones.sum() * twos.sum() == 1)
     assert(x.part_one() == 1)
+
+    s = '012222221012222222221102000220220102022222211221221122022012112012201202221'
+    t2 = BIOS(s, 5, 5)
+    assert(t2.part_one() == 80)
 
     print("Loading...")
     img = BIOS(read_image("zkamvar-input.txt"), height = 6, width = 25)

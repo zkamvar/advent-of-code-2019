@@ -46,19 +46,22 @@ class BIOS:
 def print_image(img):
     if len(img.shape) == 3:
         for k in range(img.shape[2]):
-                for j in range(img.shape[1]):
-                    for i in range(img.shape[0]):
-                        print(img[i, j, k], end = " ")
+                for i in range(img.shape[0]):
+                    for j in range(img.shape[1]):
+                        res = "█" if img[i, j, k] else " "
+                        print(res, end = " ")
                     print("")
                 print("\n---------")
     elif len(img.shape) == 2:
-        for j in range(img.shape[1]):
-            for i in range(img.shape[0]):
-                print(img[i, j], end = " ")
+        for i in range(img.shape[0]):
+            for j in range(img.shape[1]):
+                res = "█" if img[i, j] else " "
+                print(res, end = " ")
             print("")
     else:
         for i in range(img.shape[0]):
-            print(img[i], end = " ")
+            res = "█" if img[i] else " "
+            print(res, end = " ")
 
 
 def read_image(path):

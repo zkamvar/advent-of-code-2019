@@ -7,7 +7,7 @@ class BIOS:
     def __init__(self, image, height = 6, width = 25):
         image = [int(x) for x in image]
         depth = int(len(image) / (height * width))
-        layers = np.array(image).reshape((height * width, depth), order = "F")
+        layers = np.array(image).reshape((height,  width, depth), order = "F")
 
         self.image = layers
 
@@ -16,7 +16,7 @@ class BIOS:
 
     def least_zeroes(self):
         zeroes = self.image == 0
-        res = zeroes.sum(axis = 0).tolist()
+        res = zeroes.sum(axis = 0).sum(axis = 0).tolist()
         return(self.image[..., res.index(min(res))])
 
     def part_one(self):
@@ -53,6 +53,7 @@ if __name__ == '__main__':
 
     print("Loading...")
     img = BIOS(read_image("zkamvar-input.txt"), height = 6, width = 25)
+    assert(img.part_one() == 1935)
     print("Part 1: {}".format(img.part_one()))
     
 

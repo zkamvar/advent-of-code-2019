@@ -27,17 +27,38 @@ class BIOS:
 
     def print(self):
         ii = self.get_image()
-        for k in range(ii.shape[2]):
-                for j in range(ii.shape[1]):
-                    for i in range(ii.shape[0]):
-                        print(ii[i, j, k], end = " ")
-                    print("")
-                print("\n---------")
+        print_image(ii)
 
     def part_two(self):
-        i = self.get_image()
-        mask = np.zeroes(i[..., 0].shape)
+        img = self.get_image()
+        mask = img == 2
+        levels = np.zeros(img[...,0].shape, dtype = int, order = "F")
+        for i in range(img.shape[0]):
+            for j in range(img.shape[1]):
+                k = 0
+                while mask[i, j, k]:
+                    k = k + 1
+                levels[i, j] = img[i, j, k]
+        print_image(levels)
+        return(levels)
 
+
+def print_image(img):
+    if len(img.shape) == 3:
+        for k in range(img.shape[2]):
+                for j in range(img.shape[1]):
+                    for i in range(img.shape[0]):
+                        print(img[i, j, k], end = " ")
+                    print("")
+                print("\n---------")
+    elif len(img.shape) == 2:
+        for j in range(img.shape[1]):
+            for i in range(img.shape[0]):
+                print(img[i, j], end = " ")
+            print("")
+    else:
+        for i in range(img.shape[0]):
+            print(img[i], end = " ")
 
 
 def read_image(path):
@@ -67,6 +88,8 @@ if __name__ == '__main__':
     img = BIOS(read_image("zkamvar-input.txt"), height = 6, width = 25)
     assert(img.part_one() == 1935)
     print("Part 1: {}".format(img.part_one()))
+    print("Part 2: ")
+    lvls = img.part_two()
     
 
 

@@ -25,6 +25,19 @@ class BIOS:
         twos = im_full == 2
         return(ones.sum() * twos.sum())
 
+    def print(self):
+        ii = self.get_image()
+        for k in range(ii.shape[2]):
+                for j in range(ii.shape[1]):
+                    for i in range(ii.shape[0]):
+                        print(ii[i, j, k], end = " ")
+                    print("")
+                print("\n---------")
+
+    def part_two(self):
+        i = self.get_image()
+        mask = np.zeroes(i[..., 0].shape)
+
 
 
 def read_image(path):
@@ -46,7 +59,6 @@ if __name__ == '__main__':
     assert(svns.sum() == 0)
     assert(ones.sum() * twos.sum() == 1)
     assert(x.part_one() == 1)
-
     s = '012222221012222222221102000220220102022222211221221122022012112012201202221'
     t2 = BIOS(s, 5, 5)
     assert(t2.part_one() == 80)

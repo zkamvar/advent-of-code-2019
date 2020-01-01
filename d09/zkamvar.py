@@ -216,11 +216,16 @@ def part_one(string, verbose = True):
     codes = Intcode(string, input = 1, verbose = verbose)
     return(codes.play().output_string())
 
+def part_two(string, verbose = True):
+    codes = Intcode(string, input = 2, verbose = verbose)
+    return(codes.play().output_string())
+
 if __name__ == "__main__":
 
     print("\nLoading...\n")
 
     string = load_program("zkamvar-input.txt")
     print("Part one:\t{}".format(part_one(string, verbose = False)))
+    print("Part two:\t{}".format(part_two(string, verbose = False)))
     # warmer = Intcode(string, input = 5).play()
     # print("\nWarmer output was: {}".format(warmer.output))

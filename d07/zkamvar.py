@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 
 
-# - Opcode 3 takes a single integer as input and saves it to the position given
-#   by its only parameter. For example, the instruction 3,50 would take an input
-#   value and store it at address 50.
-# - Opcode 4 outputs the value of its only parameter. For example, the
-#   instruction 4,50 would output the value at address 50.
-
 import io
 import itertools
+import time
 
 class Intcode:
-    def __init__(self, string, input = 0, phase = 0):
+    def __init__(self, string, input = 0, phase = 0, verbose = False):
         self.code = [int(x) for x in string.split(",")]
         self.backup = self.code.copy()
         self.input = input
@@ -19,7 +14,29 @@ class Intcode:
         self.phased = False
         self.output = None
         self.halted = False
-    
+        self.finished = False
+        self.verbose = verbose
+        self.i = 0
+
+    def update(self, input = None, phase = None, verbose = False):
+        self.phase = phase if phase is not None else self.phase
+        self.input = input if input is not None else self.input
+        self.verbose = verbose
+        self.halted = False
+        return(self)
+
+    def reset(self, software = True, input = 0, phase = 0, verbose = False):
+        if software:
+            self.code = self.backup.copy()
+            self.i = 0
+        self.input = input
+        self.phase = phase
+        self.phased = False
+        self.output = None
+        self.halted = False
+        self.verbose = verbose
+        return(self)
+
     def string(self):
         return(",".join([str(x) for x in self.code]))
     
@@ -59,40 +76,40 @@ class Intcode:
         self.set(position, self.get(a) * self.get(b))
         return(self)
 
-    def reset(self, software = True, input = 0, phase = 0):
-        if software:
-            self.code = self.backup.copy()
-        self.input = input
-        self.phase = phase
-        self.phased = False
-        self.output = None
-        self.halted = False
-        return(self)
-
     def play(self):
-        i = 0
+        if self.verbose:
+            print("Input: {} | Phase: {}".format(self.input, self.phase))
         while True:
+            i = self.i
+            if self.verbose:
+                print(self.string())
             if self.halted:
                 break
             opcode = self.parse_optcode(i)
             inst   = opcode[0] + (10 * opcode[1])
             if inst == 99:
+            # 99 is the kill signal which will signal that the program is finished
+                self.finished = True
                 self.halted = True
                 break
             a = (self.get(i + 1), opcode[2])
-            if inst == 3:
-                steps = 2
-            elif inst == 4:
+            if inst > 2 and inst < 5:
+                # Opcodes 3 and 4 only take one argument
                 steps = 2
             else:
-                b   = (self.get(i + 2), opcode[3])
-                if inst == 5:
-                    steps = 3
-                elif inst == 6:
+                b = (self.get(i + 2), opcode[3])
+                if inst > 4 and inst < 7:
+                # Opcodes 5 and 6 take two arguments
                     steps = 3
                 else:
+                # Opcodes 1, 2, 7, and 8 get three arguments
                     steps = 4
-                    pos =  self.get(i + 3)
+                    pos = self.get(i + 3)
+
+            if self.verbose:
+                time.sleep(1)
+                instructions = [str(self.get(x)) for x in range(i, i + steps)]
+                print("i: {} \t| Inst: {} [{}]".format(i, inst, ", ".join(instructions)))
 
             if inst == 1:
                 self.add(a, b, pos)
@@ -101,15 +118,16 @@ class Intcode:
             elif inst == 3:
                 self.set(a[0], self.get_input())
             elif inst == 4:
+            # Opcode 4 sets the output value AND THEN halts/waits until it's 
+            # given another instruction.
                 self.output = self.get(a)
-                # if self.output != 0:
-                #     print("Output: {}".format(self.output))
+                self.halted = True
             elif inst == 5:
             # Opcode 5 is jump-if-true: if the first parameter is non-zero, it
             # sets the instruction pointer to the value from the second
             # parameter. Otherwise, it does nothing.
                 if self.get(a):
-                    i = self.get(b)
+                    self.i = self.get(b)
                     continue
                 else:
                     pass
@@ -119,7 +137,7 @@ class Intcode:
             # sets the instruction pointer to the value from the second
             # parameter. Otherwise, it does nothing.
                 if not self.get(a):
-                    i = self.get(b)
+                    self.i = self.get(b)
                     continue
                 else:
                     pass
@@ -140,7 +158,8 @@ class Intcode:
 
             else:
                 ValueError("This ain't right")
-            i = i + steps
+                
+            self.i = i + steps
             steps = 0
         return(self)
 
@@ -182,50 +201,38 @@ def amp_circuit(program, phase = [0, 1, 2, 3, 4], loop = False):
     D = Intcode(program, input = C.output, phase = phase[3]).play()
     E = Intcode(program, input = D.output, phase = phase[4]).play()
 
-    stopping = False
     out = E.output
 
-    while loop and not stopping:
+    while loop: 
         out = E.output
-        print(E.output)
-        A.reset(True, input = E.output, phase = phase[0]).play()
-        B.reset(True, input = A.output, phase = phase[1]).play()
-        C.reset(True, input = B.output, phase = phase[2]).play()
-        D.reset(True, input = C.output, phase = phase[3]).play()
-        E.reset(True, input = D.output, phase = phase[4]).play()
-        stopping = False if E.output is not None else True 
+        A.update(input = E.output, phase = phase[0], verbose = False).play()
+        B.update(input = A.output, phase = phase[1], verbose = False).play()
+        C.update(input = B.output, phase = phase[2], verbose = False).play()
+        D.update(input = C.output, phase = phase[3], verbose = False).play()
+        E.update(input = D.output, phase = phase[4], verbose = False).play()
+        loop = False if E.finished else True 
         
     return(out)
+
+def part_one(string):
+    res = list()
+    for i in itertools.permutations(range(5)):
+        res.append(amp_circuit(string, i))
+    return(max(res))
+
+def part_two(string):
+    res = list()
+    for i in itertools.permutations(range(5, 10)):
+        res.append(amp_circuit(string, i, loop = True))
+    return(max(res))
+
 
 
 if __name__ == "__main__":
 
-
-    t1 = amp_circuit('3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0', [4, 3, 2, 1, 0])
-    t2 = amp_circuit('3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0')   
-    t3 = amp_circuit('3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0', [1, 0, 4, 3, 2])
-
-    assert(t1 == 43210)
-    assert(t2 == 54321)
-    assert(t3 == 65210)
-
-    tx = Intcode('3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0', 0, 1).play()
-    assert(tx.output is not None)
-    assert(tx.reset().play().output is not None)
-    assert(tx.reset(False).output is None)
-
-    # t4 = amp_circuit('3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5', [9,8,7,6,5], loop = True)
-    # assert(t4 == 139629729)
-
-
-
     print("\nLoading...\n")
 
     string = load_program("zkamvar-input.txt")
-    res = list()
-    for i in itertools.permutations(range(5)):
-        res.append(amp_circuit(string, i))
 
-    print("Part 1: {}".format(max(res)))
-    print("Part 2: (屮ﾟДﾟ)屮") 
-
+    print("Part 1: {}".format(part_one(string)))
+    print("Part 2: {}".format(part_two(string))) 

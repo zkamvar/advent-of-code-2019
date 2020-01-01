@@ -76,7 +76,7 @@ def part_two(field):
     here = 0
     still_looking = True
     for i in range(len(angles)):
-        if angles[i] >= round(math.pi * 0.5, 16):
+        if angles[i] >= round(math.pi * -0.5, 16):
             here = i
             break
         else:
@@ -113,3 +113,4 @@ if __name__ == '__main__':
     t1 = read_input('zkamvar-input.txt')
     p1 = part_one(t1)
     print("There are {} asteroids detectable from {}".format(len(p1.seen), p1.name))
+    print("Part two: {}".format(part_two(t1)))

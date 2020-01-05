@@ -11,7 +11,7 @@ class Moon:
         self.velocity = [0, 0, 0]
 
     def apply_gravity(self, luna):
-        shifts = compare_bodies(self.coords, luna.coords)
+        shifts = compare_bodies(self, luna)
         self.velocity = [self.velocity[i] + shifts[i] for i in range(3)]
         return(self)
 
@@ -38,7 +38,7 @@ def compare_coords(a, b):
         return(0)
 
 def compare_bodies(a, b):
-    return([compare_coords(a[i], b[i]) for i in range(3)])
+    return([compare_coords(a.coords[i], b.coords[i]) for i in range(3)])
     
 
 
@@ -78,10 +78,29 @@ def find_energy(bodies, steps = 1):
         e += bodies[i].p_energy() * bodies[i].k_energy()
     return(e)
 
+def aligned(a, b):
+    unequal_coords = sum([a[i].coords != b[i].coords for i in range(len(a))])
+    unequal_vels   = sum([a[i].velocity != b[i].velocity for i in range(len(a))])
+    return(unequal_coords + unequal_vels == 0)
+
+
+
 def part_one():
     return(find_energy(load_program("zkamvar-input.txt"), 1000))
+
+def part_two(path):
+    bodies = load_program(path)
+    start  = load_program(path)
+    bodies = step(bodies)
+    steps = 1
+    while not aligned(bodies, start):
+        steps += 1
+        bodies = step(bodies)
+    return(steps)
+
 
 if __name__ == '__main__':
 
     print("Part one: {}".format(part_one()))
+    # print("Part two: {}".format(part_two("zkamvar-input.txt")))
 

@@ -2,6 +2,7 @@
 
 import io
 import re
+import math
 
 class Moon:
     def __init__(self, string):
@@ -78,29 +79,37 @@ def find_energy(bodies, steps = 1):
         e += bodies[i].p_energy() * bodies[i].k_energy()
     return(e)
 
-def aligned(a, b):
-    unequal_coords = sum([a[i].coords != b[i].coords for i in range(len(a))])
-    unequal_vels   = sum([a[i].velocity != b[i].velocity for i in range(len(a))])
-    return(unequal_coords + unequal_vels == 0)
+def aligned(a, b, what):
+    coords = sum([a[i].coords[what] != b[i].coords[what] for i in range(len(a))])
+    vels   = sum([a[i].velocity[what] != b[i].velocity[what] for i in range(len(a))])
+    return(coords + vels == 0)
 
+def find_cycle(path, what):
+    bodies = load_program(path)
+    start  = load_program(path)
+    bodies = step(bodies)
+    steps = 1
+    while not aligned(bodies, start, what):
+        steps += 1
+        bodies = step(bodies)
+    return(steps)
+
+def lcm(a, b):
+    return((a * b)//math.gcd(a, b))
 
 
 def part_one():
     return(find_energy(load_program("zkamvar-input.txt"), 1000))
 
 def part_two(path):
-    bodies = load_program(path)
-    start  = load_program(path)
-    bodies = step(bodies)
-    steps = 1
-    while not aligned(bodies, start):
-        steps += 1
-        bodies = step(bodies)
-    return(steps)
+    x = find_cycle(path, 0)
+    y = find_cycle(path, 1)
+    z = find_cycle(path, 2)
+    return( lcm(z, lcm(x, y)) )
 
 
 if __name__ == '__main__':
 
     print("Part one: {}".format(part_one()))
-    # print("Part two: {}".format(part_two("zkamvar-input.txt")))
+    print("Part two: {}".format(part_two("zkamvar-input.txt")))
 

@@ -12,8 +12,10 @@ def test_three():
     x = load_program("example1_10_179.txt")
     y = load_program("example1_10_179.txt")
     x = step(x, True)
-    assert(aligned(x, y) == False)
+    assert(aligned(x, y, 0) == False)
+    assert(aligned(x, y, 1) == False)
+    assert(aligned(x, y, 2) == False)
     assert(part_two("example1_10_179.txt") == 2772), "dang"
 
-# def test_four():
-#    assert(part_two("example3_4686774924.txt") == 4686774924), "double dang"
+def test_four():
+   assert(part_two("example3_4686774924.txt") == 4686774924), "double dang"

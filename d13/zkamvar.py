@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import io
+import os
 
 class Intcode:
     def __init__(self, string, input = 0, verbose = False, halts = False):
@@ -17,8 +18,9 @@ class Intcode:
         self.verbose = verbose
         self.i = 0
 
-    def update(self, input = None, verbose = False):
+    def update(self, input = None, verbose = False, i = None):
         self.input = input if input is not None else self.input
+        self.i     = i     if i     is not None else self.i
         self.verbose = verbose
         self.halted = False
         return(self)
@@ -211,10 +213,13 @@ def print_screen(the_game):
     lasty = 0
     ball = -1
     paddle = -1
+    blocks = 0
     for i in range(0, len(the_game), 3):
         if i+3 >= len(the_game):
             break
         x, y, tile = the_game[i:i+3]
+        if tile == 2:
+            blocks += 1
         if tile == 4:
             ball = x
         if tile == 3:
@@ -228,8 +233,13 @@ def print_screen(the_game):
             print()
         print(tiles[tile], end = '')
     print()
-    return((ball, paddle))
+    return((blocks, ball, paddle))
 
+def clear():
+    if os.name == "nt":
+        _ = os.system('cls')
+    else:
+        _ = os.system('clear')
 
 def part_one(path):
     game = load_program(path)
@@ -246,18 +256,20 @@ def part_one(path):
 
 def part_two(path):
     game = load_program(path)
-    cab  = Intcode(game, input = 0, halts = True)
+    cab  = Intcode(game, input = 0)
     cab.set(0, 2)
     cab.play()
-    while not cab.finished:
-        ball, paddle = print_screen(cab.output)
+    blocks, ball, paddle = print_screen(cab.output)
+    while blocks > 0:
+        clear()
         if ball == paddle:
             direction = 0
         elif ball > paddle:
             direction = 1
         else:
             direction = -1
-        cab.update(input = direction).play()
+        cab.update(input = direction, i = 0).play()
+        blocks, ball, paddle = print_screen(cab.output)
         
     # while not cab.finished:
     #     cab.play(input = 0)

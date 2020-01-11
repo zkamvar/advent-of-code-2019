@@ -244,34 +244,75 @@ def part_one(path):
     cab  = Intcode(game, input = 0).play()
     blocks = 0
     score, blocks, ball, paddle = print_screen(cab.output)
-    # for i in range(0, len(cab.output), 3):
-    #     x, y, tile = cab.output[i:i+3]
-    #     if tile == 2:
-    #         blocks += 1
     return(blocks)
 
+def stick(ball, paddle):
+    both_found = ball > 0 and paddle > 0
+    if not both_found:
+        return(0)
+    if ball == paddle:
+        direction = 0
+    elif ball > paddle:
+        direction = 1
+    else:
+        direction = -1
+    return(direction)
 
+class Screen:
+    def __init__(self):
+        self.x = 0 
+        self.y = 0
+        self.tiles = {}
+        self.shapes = [" ", "|", "#", "_", "o"]
+        self.score = 0
+    
+    def update(self, x, y, tile):
+        self.x = x if x > self.x else self.x
+        self.y = y if y > self.y else self.y
+        if x == -1 and y == 0:
+            self.score = tile
+        else:
+            self.tiles["{},{}".format(x, y)] = tile
+        return(self)
+
+    def print(self):
+        clear()
+        print("Score: {}".format(self.score))
+        for y in range(self.y):
+            for x in range(self.x):
+                the_tile = self.shapes[self.tiles["{},{}".format(x, y)]]
+                print(the_tile, end = "")
+            print()
+        print()
+        return(self)
 
 def part_two(path):
     game = load_program(path)
-    cab  = Intcode(game, input = 0)
+    cab  = Intcode(game, input = 0, halts = True)
     cab.set(0, 2)
+    the_screen = Screen()
+    paddle = -1
+    ball = -1
+    step = 0
+    current_tile = [0, 0, 0]
     cab.play()
-    score = 0
-    print(len(cab.output))
-    score, blocks, ball, paddle = print_screen(cab.output, score)
-    while blocks > 0:
-        # clear()
-        time.sleep(1)
-        if ball == paddle:
-            direction = 0
-        elif ball > paddle:
-            direction = 1
+    current_tile[step % 3] = cab.get_output()
+    while not cab.finished:
+        step += 1
+        if step % 3 == 0:
+            x, y, tile = current_tile
+            the_screen.update(x, y, tile)
+            the_screen.print()
+            if tile == 3:
+                paddle = x
+            if tile == 4:
+                ball = x
         else:
-            direction = -1
-        cab.update(input = direction).play()
-        score, blocks, ball, paddle = print_screen(cab.output, score)
-
+            pass
+        joy = stick(ball, paddle)
+        current_tile[step % 3] = cab.update(input = joy).play().get_output()
+    return(the_screen.score)
+        
 if __name__ == "__main__":
 
 
@@ -279,5 +320,5 @@ if __name__ == "__main__":
     print("\nLoading...\n")
 
     print("Panels: {}".format(part_one("zkamvar-input.txt")))
-    part_two("zkamvar-input.txt")
+    print("Final Score: {}".format(part_two("zkamvar-input.txt")))
 

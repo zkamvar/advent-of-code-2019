@@ -2,6 +2,7 @@
 
 import io
 import os
+import time
 
 class Intcode:
     def __init__(self, string, input = 0, verbose = False, halts = False):
@@ -209,31 +210,28 @@ def load_program(path):
 
 tiles = [" ", "|", "#", "_", "o"]
 
-def print_screen(the_game):
+def print_screen(the_game, score = 0):
     lasty = 0
     ball = -1
     paddle = -1
     blocks = 0
+    print("\nCurrent Score: {}".format(score))
     for i in range(0, len(the_game), 3):
-        if i+3 >= len(the_game):
-            break
         x, y, tile = the_game[i:i+3]
         if tile == 2:
             blocks += 1
-        if tile == 4:
-            ball = x
         if tile == 3:
             paddle = x
-        print_score = x == -1 and y == 0
-        if print_score:
-            print("Current Score: {}".format(tile))
-            continue
+        if tile == 4:
+            ball = x
+        if x == -1 and y == 0:
+            return((tile, blocks, ball, paddle))
         if y > lasty:
             lasty = y
             print()
         print(tiles[tile], end = '')
     print()
-    return((blocks, ball, paddle))
+    return((score, blocks, ball, paddle))
 
 def clear():
     if os.name == "nt":
@@ -245,11 +243,11 @@ def part_one(path):
     game = load_program(path)
     cab  = Intcode(game, input = 0).play()
     blocks = 0
-    print_screen(cab.output)
-    for i in range(0, len(cab.output), 3):
-        x, y, tile = cab.output[i:i+3]
-        if tile == 2:
-            blocks += 1
+    score, blocks, ball, paddle = print_screen(cab.output)
+    # for i in range(0, len(cab.output), 3):
+    #     x, y, tile = cab.output[i:i+3]
+    #     if tile == 2:
+    #         blocks += 1
     return(blocks)
 
 
@@ -259,26 +257,20 @@ def part_two(path):
     cab  = Intcode(game, input = 0)
     cab.set(0, 2)
     cab.play()
-    blocks, ball, paddle = print_screen(cab.output)
+    score = 0
+    print(len(cab.output))
+    score, blocks, ball, paddle = print_screen(cab.output, score)
     while blocks > 0:
-        clear()
+        # clear()
+        time.sleep(1)
         if ball == paddle:
             direction = 0
         elif ball > paddle:
             direction = 1
         else:
             direction = -1
-        cab.update(input = direction, i = 0).play()
-        blocks, ball, paddle = print_screen(cab.output)
-        
-    # while not cab.finished:
-    #     cab.play(input = 0)
-    #     n = len(cab.output)
-
-    
-
-    
-
+        cab.update(input = direction).play()
+        score, blocks, ball, paddle = print_screen(cab.output, score)
 
 if __name__ == "__main__":
 

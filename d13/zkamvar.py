@@ -272,7 +272,7 @@ class Screen:
         if x == -1 and y == 0:
             self.score = tile
         else:
-            self.tiles["{},{}".format(x, y)] = tile
+            self.tiles["{},{}".format(x, y)] = self.shapes[tile]
         return(self)
 
     def print(self):
@@ -280,7 +280,7 @@ class Screen:
         print("Score: {}".format(self.score))
         for y in range(self.y):
             for x in range(self.x):
-                the_tile = self.shapes[self.tiles["{},{}".format(x, y)]]
+                the_tile = self.tiles["{},{}".format(x, y)]
                 print(the_tile, end = "")
             print()
         print()

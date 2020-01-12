@@ -2,6 +2,7 @@
 
 import io
 import re
+import math
 
 class Chem:
     def __init__(self, name, quantity):
@@ -19,7 +20,7 @@ class Chem:
         return(self)
 
     def has_req(self, req):
-        return(req.name in self.reqs)
+        return(req in self.reqs)
 
     def n_req(self):
         return(len(self.reqs))
@@ -56,7 +57,7 @@ def find_ore(element, basket):
         return(basket)
     for key in element.reqs.keys():
         the_needed = element.reqs[key]
-        print("{} needs {} {}".format(element.name, the_needed[1], key))
+        # print("{} needs {} {}".format(element.name, the_needed[1], key))
         basket[key]["needs"].append(the_needed[1])
         the_needed[0].add_product(element)
         basket = find_ore(the_needed[0], basket)
@@ -65,13 +66,24 @@ def find_ore(element, basket):
 
 def part_one(ingredients):
     basket = {}
+    needs_ore = []
     FUEL = ingredients["FUEL"]
     for key in ingredients.keys():
+        if ingredients[key].has_req("ORE"):
+            needs_ore.append(ingredients[key].name)
+        else:
+            pass
         quant = [FUEL.reqs[key][1]] if key in FUEL.reqs else []
         basket[key] = {"needs": quant, "increments": ingredients[key].quantity}
-    for element, quantity in FUEL.reqs.values():
+    for element, _ in FUEL.reqs.values():
         find_ore(element, basket)
-    return(basket)
+    much_ore = 0
+    for e in needs_ore:
+        the_needed = sum(basket[e]["needs"])
+        increment = basket[e]["increments"]
+        much_ore += increment * math.ceil(the_needed/increment)
+
+    return(much_ore)
 
 if __name__ == '__main__':
     print(part_one(get_input("example1_31.txt")))

@@ -8,9 +8,14 @@ class Chem:
         self.name = name
         self.quantity = quantity
         self.reqs = {}
+        self.makes = {}
 
     def add_req(self, chem, quantity):
         self.reqs[chem.name] = (chem, quantity)
+        return(self)
+    
+    def add_product(self, product):
+        self.makes[product.name] = product
         return(self)
 
     def has_req(self, req):
@@ -50,9 +55,11 @@ def find_ore(element, basket):
     if element.name == "ORE":
         return(basket)
     for key in element.reqs.keys():
-        print("{} needs {} {}".format(element.name, element.reqs[key][1], key))
-        basket[key]["needs"].append(element.reqs[key][1])
-        basket = find_ore(element.reqs[key][0], basket)
+        the_needed = element.reqs[key]
+        print("{} needs {} {}".format(element.name, the_needed[1], key))
+        basket[key]["needs"].append(the_needed[1])
+        the_needed[0].add_product(element)
+        basket = find_ore(the_needed[0], basket)
     return(basket)
         
 

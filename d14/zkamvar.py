@@ -19,6 +19,13 @@ class Chem:
     def n_req(self):
         return(len(self.reqs))
 
+# Notes:
+# Each element needs to be increased by its own quantity.
+#
+# 1. have a separate dictionary that lists the quantity of each element we need
+# 2. walk from the fuel back to the ORE and record the immediate quantity of
+#    each needed 
+# 3. balance???
 
 def get_input(path):
     with io.open(path, "r") as f:
@@ -39,10 +46,26 @@ def get_input(path):
             this_node.add_req(nodes[node[0]], node[1])
     return(nodes)
 
-if __name__ == '__main__':
-
-    print(get_input("example1_31.txt"))
-    print("NOT YET")
-
-
+def find_ore(element, basket):
+    if element.name == "ORE":
+        return(basket)
+    for key in element.reqs.keys():
+        print("{} needs {} {}".format(element.name, element.reqs[key][1], key))
+        basket[key]["needs"].append(element.reqs[key][1])
+        basket = find_ore(element.reqs[key][0], basket)
+    return(basket)
         
+
+def part_one(ingredients):
+    basket = {}
+    FUEL = ingredients["FUEL"]
+    for key in ingredients.keys():
+        quant = [FUEL.reqs[key][1]] if key in FUEL.reqs else []
+        basket[key] = {"needs": quant, "increments": ingredients[key].quantity}
+    for element, quantity in FUEL.reqs.values():
+        find_ore(element, basket)
+    return(basket)
+
+if __name__ == '__main__':
+    print(part_one(get_input("example1_31.txt")))
+

@@ -2,7 +2,9 @@
 
 import io
 import re
-import math
+from math import ceil
+from queue import Queue
+from collections import defaultdict
 
 class Chem:
     def __init__(self, name, quantity):
@@ -52,96 +54,48 @@ def get_input(path):
             this_node.add_req(nodes[node[0]], node[1])
     return(nodes)
 
-def find_ore(element, basket):
-    if element.name == "ORE":
-        return(basket)
-    for key in element.reqs.keys():
-        the_needed, amount_needed = element.reqs[key]
-        
-        if the_needed.name in basket:
-            remaining = basket[the_needed.name]["leftovers"]
+'''
+I was going the absolute wrong way with this one, so I had to go to the
+solutions thread. This particular solution was adapted to a particularly
+well-documented solution here:
+https://github.com/jeffjeffjeffrey/advent-of-code/blob/f3f9ee1cc706210eca04e05775021793aa8c5086/2019/day_14.ipynb
+
+Whereas I was attempting to use a dictionary to keep track of all the
+ingredients needed (and failing miserably), jjj used a Queue and treated all
+of the ingredients like orders at a restaraunt. It effectively starts like this:
+
+Your first order is an amount of FUEL, but you need certain ingredients to
+make that fuel, so you take each item needed for the recipe, figure out how
+much you need to make in "amount" and keep a record of how much is left over
+in supply. You put each item in the orders queue and then go through until
+there are no more orders left to take (which happens to be when you start
+adding up the ORE you need).
+'''
+def make_fuel(amount, recipes):
+    supply = defaultdict(int)
+    orders = Queue()
+    orders.put({"ingredient": "FUEL", "amount": amount})
+    ore_needed = 0
+
+    while not orders.empty():
+        order = orders.get()
+        if order["ingredient"] == "ORE":
+            ore_needed += order["amount"]
+        elif order["amount"] <= supply[order["ingredient"]]:
+            supply[order["ingredient"]] -= order["amount"]
         else:
-            remaining = 0
-        # what's needed of the current element 
-        for_fuel = basket[element.name]["needs"]
-
-        # How much we need to make the current element's product
-        i_need_this_much = (amount_needed * for_fuel) - remaining
-
-        # the amount we overshot
-        the_remainder = i_need_this_much % the_needed.quantity
-
-        # the amount we'll make
-        topoff = int(the_remainder > 0)
-        mult   = i_need_this_much // the_needed.quantity
-        i_make_this_much = the_needed.quantity * (topoff + mult)
-        
-        # updating our cart
-        basket[key]["leftovers"] = the_remainder
-        basket[key]["needs"] += i_make_this_much
-        the_needed.add_product(element)
-        
-        # going one level deeper
-        basket = find_ore(the_needed, basket)
-    return(basket)
-        
+            amount_needed = order["amount"] - supply[order["ingredient"]]
+            recipe = recipes[order["ingredient"]]
+            batches = ceil(amount_needed / recipe.quantity)
+            for ingredient, amount in recipe.reqs.values():
+                orders.put({"ingredient": ingredient.name, "amount": amount * batches})
+            leftover_amount = batches * recipe.quantity - amount_needed
+            supply[order["ingredient"]] = leftover_amount
+    return ore_needed
 
 def part_one(ingredients):
-    basket = {}
-    needs_ore = []
-    FUEL = ingredients["FUEL"]
-    for key in ingredients.keys():
-        if ingredients[key].has_req("ORE"):
-            needs_ore.append(ingredients[key].name)
-        else:
-            pass
-        quant = FUEL.reqs[key][1] if key in FUEL.reqs else 0
-        basket[key] = {"needs": quant, "increments": ingredients[key].quantity, "leftovers": 0}
-    for element, _ in FUEL.reqs.values():
-        find_ore(element, basket)
-    much_ore = 0
-    for e in needs_ore:
-        ore_needed = ingredients[e].reqs["ORE"][1] 
-        the_needed = basket[e]["needs"]
-        increment = basket[e]["increments"]
-        much_ore += ore_needed * math.ceil(the_needed/increment)
+    return(make_fuel(1, ingredients))
 
-    return(much_ore, needs_ore, basket)
 
 if __name__ == '__main__':
-
-    '''
-    9 ORE => 2 A
-    8 ORE => 3 B
-    7 ORE => 5 C
-    3 A, 4 B => 1 AB
-    5 B, 7 C => 1 BC
-    4 C, 1 A => 1 CA
-    2 AB, 3 BC, 4 CA => 1 FUEL
-    
-    # 2 AB = 6 A, 8 B
-    #      = 2*3 A + 3*3 B
-    #      = 9*3   + 8*3 ORE
-    #      = 27    + 24  ORE
-    #      = 51 ORE
-    # remainder : 1 B
-
-    # 3 BC = 15 B, 21 C
-    #      = 3*5 B + 5*5 C
-    #      = 8*5   + 7*5 ORE
-    #      = 40    + 35  ORE
-    #      = 75 ORE
-    # remainder: 4 C
-
-    # 4 CA = 16 C, 4 A
-    #      = 5*4 C + 2*2 A
-    #      = 7*4   + 9*2 ORE
-    #      = 28    + 18  ORE
-    #      = 46 ORE
-    # remainder: 4 C
-    '''
-    print(part_one(get_input("example1_31.txt")))
-    print(part_one(get_input("example1_znk.txt")))
-    print(part_one(get_input("example2_165.txt")))
-    print(part_one(get_input("example3_13312.txt")))
-
+    print("To make one fuel we need {} ORE".format(part_one(get_input("zkamvar-input.txt"))))
